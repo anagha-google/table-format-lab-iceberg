@@ -320,21 +320,23 @@ terraform apply \
 
 Edit region as appropriate-
 ```
+SERVERLESS_SPARK_RUNTIME=2.2
+
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
 PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
 SESSION_NAME="iceberg-lab"
 LOCATION="us-central1"
-HISTORY_SERVER_NAME="iceberg-sphs-${PROJECT_NBR}"
-METASTORE_NAME="iceberg-hms-${PROJECT_NBR}"
+HISTORY_SERVER_NAME="dll-sphs-${PROJECT_NBR}"
+METASTORE_NAME="dll-hms-${PROJECT_NBR}"
 HADOOP_WAREHOUSE_DIR="gs://iceberg-spark-bucket-${PROJECT_NBR}/iceberg-warehouse-dir"
-SUBNET="spark-subnet"
-NOTEBOOK_BUCKET="gs://s8s_notebook_bucket-${PROJECT_NBR}"
+SUBNET="projects/delta-lake-diy-lab/regions/us-central1/subnetworks/spark-snet"
+UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com" 
 
 
 gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --project=${PROJECT_ID} \
 --location=${LOCATION} \
---property=spark.jars.packages="org.apache.iceberg:iceberg-spark-runtime-3.3_2.13:1.1.0" \
+--property=spark.jars.packages="org.apache.iceberg:iceberg-spark-runtime-3.5_2.13:1.4.0" \
 --history-server-cluster="projects/$PROJECT_ID/regions/$LOCATION/clusters/${HISTORY_SERVER_NAME}" \
 --metastore-service="projects/$PROJECT_ID/locations/$LOCATION/services/${METASTORE_NAME}" \
 --property="spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
@@ -343,8 +345,10 @@ gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --property="spark.sql.catalog.hdp_ctlg=org.apache.iceberg.spark.SparkCatalog" \
 --property="spark.sql.catalog.hdp_ctlg.type=hadoop" \
 --property="spark.sql.catalog.hdp_ctlg.warehouse=${HADOOP_WAREHOUSE_DIR}" \
---service-account="iceberg-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com" \
---subnet=$SUBNET 
+--service-account=$UMSA \
+--subnet=$SUBNET \
+--version=$SERVERLESS_SPARK_RUNTIME
+
 
 ```
 The author typcially has two sessions handly to expedite switching across notebooks.
