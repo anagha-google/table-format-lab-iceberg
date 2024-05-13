@@ -60,27 +60,71 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=user:"$GCP_ACCOUNT_N
 
 In the BQ UI
 ```
-CREATE SCHEMA loan_ds;
+CREATE SCHEMA loan_ds OPTIONS (location='us-central1');
 ```
 
 <hr><hr>
 
 # 2. BigLake Iceberg snapshot tables
 
+## 2.1. About 
 These are Biglake self-managed Iceberg tables for a point in time Iceberg snapshot.<br>
 As the table data changes, the snapshot needs refreshing
 
 
+## 2.2. Create table
+
 Run this in the BQ UI:
 ```
-CREATE EXTERNAL TABLE biglake_iceberg_pit
+CREATE EXTERNAL TABLE loan_ds.biglake_iceberg_pit
   WITH CONNECTION `us-central1.loan-bl-conn`
   OPTIONS (
          format = 'ICEBERG',
-         uris = ["gs://mybucket/mydata/mytable/metadata/iceberg.metadata.json"]
+         uris = ["gs://gcs-bucket-dll-hms-11002190840-e1664035-a2d9-4215-be46-45c40712/hive-warehouse/loan_db.db/loans_by_state_iceberg/metadata/00009-adcf98fc-d438-4d60-869b-058ed138dba6.metadata.json"]
    )
 ```
 
+## 2.3. Query the table in BigQuery UI
+```
+SELECT * FROM `delta-lake-diy-lab.loan_ds.biglake_iceberg_pit` where addr_state='IL'
+```
+
+Loan count: 17775
+
+## 2.4. Update the data in the table via Spark
+
+```
+spark.sql("update loan_db.loans_by_state_iceberg set loan_count=9999 where addr_state='IL'")
+```
+
+
+## 2.5. Query the table in BigQuery UI
+```
+SELECT * FROM `delta-lake-diy-lab.loan_ds.biglake_iceberg_pit` where addr_state='IL'
+```
+
+You will get the error -`Not found: Files gs://gcs-bucket-dll-hms-11002190840-e1664035-a2d9-4215-be46-45c40712/hive-warehouse/loan_db.db/loans_by_state_iceberg/metadata/00009-adcf98fc-d438-4d60-869b-058ed138dba6.metadata.json`
+
+
+## 2.6. Update the table definition to refect the latest manifest json
+
+
+```
+CREATE OR REPLACE EXTERNAL TABLE loan_ds.biglake_iceberg_pit
+  WITH CONNECTION `us-central1.loan-bl-conn`
+  OPTIONS (
+         format = 'ICEBERG',
+         uris = ["gs://gcs-bucket-dll-hms-11002190840-e1664035-a2d9-4215-be46-45c40712/hive-warehouse/loan_db.db/loans_by_state_iceberg/metadata/00015-d22b3c09-fe8b-433e-a596-ad5c8aa02088.metadata.json"]
+   )
+```
+
+## 2.7. Query the table in BigQuery UI
+
+```
+SELECT * FROM `delta-lake-diy-lab.loan_ds.biglake_iceberg_pit` where addr_state='IL'
+```
+
+You should get the result 9999
 
 
 
