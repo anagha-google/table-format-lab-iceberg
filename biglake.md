@@ -127,5 +127,10 @@ SELECT * FROM `delta-lake-diy-lab.loan_ds.biglake_iceberg_pit` where addr_state=
 You should get the result 9999
 
 
+<hr><hr>
+
+
+# 3. BigLake Iceberg native unmanaged tables 
+
 
 
