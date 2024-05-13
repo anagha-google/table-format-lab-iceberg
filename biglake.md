@@ -15,7 +15,7 @@ gcloud services enable datacatalog.googleapis.com
 gcloud services enable datalineage.googleapis.com
 ```
 
-## 2. Create a BigLake connection
+## 1.2. Create a BigLake connection
 
 ```
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
@@ -29,7 +29,7 @@ RESPONSE=`bq mk --connection --location=$LOCATION --project_id=$PROJECT_ID --con
 
 ```
 
-## 3. Get BigLake connection SA
+## 1.3. Get BigLake connection SA
 
 ```
 CONN_RES=`bq show --connection $PROJECT_ID.$LOCATION.$BIGLAKE_CONNECTION_ID`
@@ -37,7 +37,7 @@ BIGLAKE_CONN_SA=`bq show --connection $PROJECT_ID.$LOCATION.$BIGLAKE_CONNECTION_
 echo $BIGLAKE_CONN_SA
 ```
 
-## 4. Grant the BigLake connection SA access to storage systems
+## 1.4. Grant the BigLake connection SA access to storage systems
 
 ```
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
@@ -46,7 +46,7 @@ PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d'
 gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$BIGLAKE_CONN_SA" --role="roles/storage.objectViewer"
 ```
 
-## 5. Grant yourself connection user 
+## 1.5. Grant yourself connection user 
 ```
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
 PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
@@ -56,7 +56,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=user:"$GCP_ACCOUNT_N
 ```
 
 
-## 6. Create BigQuery dataset - loan_ds
+## 1.6. Create BigQuery dataset - loan_ds
 
 In the BQ UI
 ```
@@ -67,5 +67,21 @@ CREATE SCHEMA loan_ds;
 
 # 2. BigLake Iceberg snapshot tables
 
-These are Biglake self-managed Iceberg tables for an Iceberg snapshot.
+These are Biglake self-managed Iceberg tables for a point in time Iceberg snapshot.<br>
+As the table data changes, the snapshot needs refreshing
+
+
+Run this in the BQ UI:
+```
+CREATE EXTERNAL TABLE biglake_iceberg_pit
+  WITH CONNECTION `us-central1.loan-bl-conn`
+  OPTIONS (
+         format = 'ICEBERG',
+         uris = ["gs://mybucket/mydata/mytable/metadata/iceberg.metadata.json"]
+   )
+```
+
+
+
+
 
