@@ -11,6 +11,8 @@ Apache Iceberg is an open standard table format for huge analytic tables that ca
 #### Summary
 This lab exercise which runs Apache Spark on Cloud Dataproc aims to familiarize users to Apache Iceberg with a minimum viable sample of the core features of the table format on a Data Lake on Cloud Storage. The dataset leveraged is the Kaggle Lending Club loan dataset, and the lab features a set of eight Spark notebooks, each covering a feature or a set of features. The lab is fully scripted (no challenges) and is for pure instructional purpose.
 
+This lab is an Iceberg version of [Anagha Khanolkar lab on Delta Lake](https://github.com/anagha-google/table-format-lab-delta).
+
 #### Automation
 The lab includes Terraform automation for GCP environment provisioning and detailed instructions including commands and configuration.
 
@@ -226,6 +228,7 @@ Fully scripted, with detailed instructions intended for learning, not necessaril
 | 2. | Anagha Khanolkar, Customer Engineer | Ideation |
 
 
+
 ### A14. Contributions welcome
 Community contribution to improve the lab is very much appreciated. <br>
 
@@ -241,7 +244,7 @@ If you have any questions or if you found any problems with this repository, ple
 
 ```
 cd ~
-git clone https://github.com/nikhil6790/table-format-lab-iceberg.git
+git clone https://github.com/anagha-google/table-format-lab-iceberg.git
 ```
 
 <hr>
@@ -318,9 +321,10 @@ terraform apply \
 
 ## C. Create a Dataproc Interactive Spark Session
 
-Edit region as appropriate-
+Edit the region as appropriate-
 ```
-SERVERLESS_SPARK_RUNTIME=2.2
+
+SERVERLESS_SPARK_RUNTIME=2.0
 
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
 PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
@@ -331,12 +335,13 @@ METASTORE_NAME="dll-hms-${PROJECT_NBR}"
 HADOOP_WAREHOUSE_DIR="gs://iceberg-spark-bucket-${PROJECT_NBR}/iceberg-warehouse-dir"
 SUBNET="projects/delta-lake-diy-lab/regions/us-central1/subnetworks/spark-snet"
 UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com" 
+ICEBERG_PKG_COORDINATES=org.apache.iceberg:iceberg-spark-runtime-3.3_2.13:1.5.0
 
 
 gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --project=${PROJECT_ID} \
 --location=${LOCATION} \
---property=spark.jars.packages="org.apache.iceberg:iceberg-spark-runtime-3.5_2.13:1.4.0" \
+--property=spark.jars.packages="$ICEBERG_PKG_COORDINATES" \
 --history-server-cluster="projects/$PROJECT_ID/regions/$LOCATION/clusters/${HISTORY_SERVER_NAME}" \
 --metastore-service="projects/$PROJECT_ID/locations/$LOCATION/services/${METASTORE_NAME}" \
 --property="spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
@@ -348,6 +353,7 @@ gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --service-account=$UMSA \
 --subnet=$SUBNET \
 --version=$SERVERLESS_SPARK_RUNTIME
+
 
 
 ```
