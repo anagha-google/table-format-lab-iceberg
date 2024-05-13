@@ -133,4 +133,17 @@ You should get the result 9999
 # 3. BigLake Iceberg native unmanaged tables 
 
 
+## 3.1. Grant the UMSA BigLake admin privileges
 
+```
+PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
+PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
+LOCATION="us-central1"
+UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+
+
+gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$UMSA" --role="roles/biglake.admin"
+
+```
+
+## 3.2. Create a Spark session with 
