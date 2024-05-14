@@ -42,10 +42,10 @@ echo $BIGLAKE_CONN_SA
 ```
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
 PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
+UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com" 
 
 gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$BIGLAKE_CONN_SA" --role="roles/storage.objectViewer"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$BIGLAKE_CONN_SA" --role="roles/biglake.Viewer"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$BIGLAKE_CONN_SA" --role="roles/biglake.admin"
 ```
 
 ## 1.5. Grant yourself connection user 
