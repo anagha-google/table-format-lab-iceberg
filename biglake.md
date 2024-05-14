@@ -134,8 +134,10 @@ You should get the result 9999
 
 # 3. BigLake Iceberg native unmanaged tables 
 
+## 3.1. Create a GCS bucket for BLMT
 
-## 3.1. Grant the UMSA BigLake admin privileges
+
+## 3.2. Grant the UMSA BigLake admin privileges
 
 ```
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
@@ -148,10 +150,9 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$UMS
 
 ```
 
-## 3.2. Create Dataproc interactive Spark with the BLMS jar
+## 3.3. Create Dataproc interactive Spark with the BLMS jar
 
 ```
-
 SERVERLESS_SPARK_RUNTIME=2.0
 
 PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
@@ -183,6 +184,15 @@ gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --service-account=$UMSA \
 --subnet=$SUBNET \
 --version=$SERVERLESS_SPARK_RUNTIME
+```
+
+Run the BLMS lab notebook.
+
+## 3.4. Edge cases - orphan table in BLMS without table listing in BQ
 
 
 ```
+CREATE EXTERNAL TABLE `loan_ds.loans_by_state_iceberg`
+    WITH CONNECTION `us-central1.loan-bl-conn` 
+    OPTIONS(format='ICEBERG',   uris=['blms://projects/11002190840/locations/us-central1/catalogs/loans_iceberg_catalog/databases/loan_iceberg_db/tables/loans_by_state_iceberg']);
+``
