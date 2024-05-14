@@ -78,11 +78,11 @@ As the table data changes, the snapshot needs refreshing
 
 Run this in the BQ UI:
 ```
-CREATE EXTERNAL TABLE loan_ds.biglake_iceberg_pit
+CREATE OR REPLACE EXTERNAL TABLE loan_ds.loans_by_state_iceberg_biglake_snapshot
   WITH CONNECTION `us-central1.loan-bl-conn`
   OPTIONS (
          format = 'ICEBERG',
-         uris = ["gs://gcs-bucket-dll-hms-11002190840-e1664035-a2d9-4215-be46-45c40712/hive-warehouse/loan_db.db/loans_by_state_iceberg/metadata/00009-adcf98fc-d438-4d60-869b-058ed138dba6.metadata.json"]
+         uris = ["gs://gcs-bucket-dll-hms-11002190840-e1664035-a2d9-4215-be46-45c40712/hive-warehouse/loan_db.db/loans_by_state_iceberg/metadata/00009-ba57d4c5-06ce-4240-a335-5c1a524f420b.metadata.json"]
    )
 ```
 
