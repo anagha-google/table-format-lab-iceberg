@@ -164,25 +164,23 @@ UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com"
 ICEBERG_PKG_COORDINATES=org.apache.iceberg:iceberg-spark-runtime-3.3_2.13:1.5.0
 BLMS_JAR_GCS_URI=gs://spark-lib/biglake/biglake-catalog-iceberg1.5.0-0.1.1-with-dependencies.jar
 HMS_URI="projects/$PROJECT_ID/locations/$LOCATION/services/${METASTORE_NAME}" 
-
+BLMS_CATALOG="loans_iceberg_catalog"
 
 gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
 --project=${PROJECT_ID} \
 --location=${LOCATION} \
---property=spark.jars.packages="$ICEBERG_PKG_COORDINATES" \
 --history-server-cluster="projects/$PROJECT_ID/regions/$LOCATION/clusters/${HISTORY_SERVER_NAME}" \
+--property="spark.sql.catalog.loans_iceberg_catalog=org.apache.iceberg.spark.SparkCatalog" \
+--property="spark.sql.catalog.loans_iceberg_catalog.catalog-impl=org.apache.iceberg.gcp.biglake.BigLakeCatalog" \
+--property="spark.sql.catalog.loans_iceberg_catalog.gcp_project=$PROJECT_ID" \
+--property="spark.sql.catalog.loans_iceberg_catalog.gcp_location=$LOCATION" \
+--property="spark.sql.catalog.loans_iceberg_catalog.blms_catalog=$BLMS_CATALOG" \
+--property="spark.sql.catalog.loans_iceberg_catalog.warehouse=$DATA_WAREHOUSE_DIR" \
+--property="spark.jars.packages=$ICEBERG_PKG_COORDINATES" \
 --property="spark.jars=$BLMS_JAR_GCS_URI" \
---property="spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
---property="spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog" \
---property="spark.sql.catalog.loan_iceberg_catalog=org.apache.iceberg.spark.SparkCatalog"  \
---property="spark.sql.catalog.loan_iceberg_catalog.catalog-impl=org.apache.iceberg.gcp.biglake.BigLakeCatalog" \
---property="spark.sql.catalog.loan_iceberg_catalog.hms_uri=$HMS_URI" \
---property="spark.sql.catalog.loan_iceberg_catalog.gcp_project=$PROJECT_ID"  \
---property="spark.sql.catalog.loan_iceberg_catalog.gcp_location=$LOCATION" \
---property="spark.sql.catalog.loan_iceberg_catalog.blms_catalog=loan_iceberg_catalog" \
---property="spark.sql.catalog.loan_iceberg_catalog.warehouse=$DATA_WAREHOUSE_URI" \
 --service-account=$UMSA \
 --subnet=$SUBNET \
 --version=$SERVERLESS_SPARK_RUNTIME
+
 
 ```
