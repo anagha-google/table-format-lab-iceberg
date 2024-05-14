@@ -146,4 +146,43 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:"$UMS
 
 ```
 
-## 3.2. Create a Spark session with 
+## 3.2. Create Dataproc interactive Spark with the BLMS jar
+
+```
+
+SERVERLESS_SPARK_RUNTIME=2.0
+
+PROJECT_ID=`gcloud config list --format "value(core.project)" 2>/dev/null`
+PROJECT_NBR=`gcloud projects describe $PROJECT_ID | grep projectNumber | cut -d':' -f2 |  tr -d "'" | xargs`
+SESSION_NAME="iceberg-lab"
+LOCATION="us-central1"
+HISTORY_SERVER_NAME="dll-sphs-${PROJECT_NBR}"
+METASTORE_NAME="dll-hms-${PROJECT_NBR}"
+DATA_WAREHOUSE_DIR="gs://iceberg-spark-bucket-${PROJECT_NBR}/iceberg-warehouse-dir"
+SUBNET="projects/delta-lake-diy-lab/regions/us-central1/subnetworks/spark-snet"
+UMSA="dll-lab-sa@${PROJECT_ID}.iam.gserviceaccount.com" 
+ICEBERG_PKG_COORDINATES=org.apache.iceberg:iceberg-spark-runtime-3.3_2.13:1.5.0
+BLMS_JAR_GCS_URI=gs://spark-lib/biglake/biglake-catalog-iceberg1.5.0-0.1.1-with-dependencies.jar
+HMS_URI="projects/$PROJECT_ID/locations/$LOCATION/services/${METASTORE_NAME}" 
+
+
+gcloud beta dataproc sessions create spark $SESSION_NAME-$RANDOM  \
+--project=${PROJECT_ID} \
+--location=${LOCATION} \
+--property=spark.jars.packages="$ICEBERG_PKG_COORDINATES" \
+--history-server-cluster="projects/$PROJECT_ID/regions/$LOCATION/clusters/${HISTORY_SERVER_NAME}" \
+--property="spark.jars=$BLMS_JAR_GCS_URI" \
+--property="spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
+--property="spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog" \
+--property="spark.sql.catalog.loan_iceberg_catalog=org.apache.iceberg.spark.SparkCatalog"  \
+--property="spark.sql.catalog.loan_iceberg_catalog.catalog-impl=org.apache.iceberg.gcp.biglake.BigLakeCatalog" \
+--property="spark.sql.catalog.loan_iceberg_catalog.hms_uri=$HMS_URI" \
+--property="spark.sql.catalog.loan_iceberg_catalog.gcp_project=$PROJECT_ID"  \
+--property="spark.sql.catalog.loan_iceberg_catalog.gcp_location=$LOCATION" \
+--property="spark.sql.catalog.loan_iceberg_catalog.blms_catalog=loan_iceberg_catalog" \
+--property="spark.sql.catalog.loan_iceberg_catalog.warehouse=$DATA_WAREHOUSE_URI" \
+--service-account=$UMSA \
+--subnet=$SUBNET \
+--version=$SERVERLESS_SPARK_RUNTIME
+
+```
